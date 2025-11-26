@@ -4,6 +4,7 @@ import {
 	BarChartOutlined,
 	CalculatorOutlined,
 	FunnelPlotOutlined,
+	DollarOutlined,
 	SunOutlined,
 	MoonOutlined,
 } from '@ant-design/icons';
@@ -11,12 +12,13 @@ import { useThemeStore } from '../../shared/store/theme';
 import { SalesAnalytics } from '../../pages/SalesAnalytics/SalesAnalytics';
 import { ProfitCalculator } from '../../pages/ProfitCalculator/ProfitCalculator';
 import { SalesFunnel } from '../../pages/SalesFunnel/SalesFunnel';
+import { AdSpending } from '../../pages/AdSpending/AdSpending';
 import './AppLayout.css';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
-type TabKey = 'analytics' | 'calculator' | 'funnel';
+type TabKey = 'analytics' | 'calculator' | 'funnel' | 'adspending';
 
 export const AppLayout: React.FC = () => {
 	const [activeTab, setActiveTab] = useState<TabKey>('analytics');
@@ -52,6 +54,16 @@ export const AppLayout: React.FC = () => {
 				</span>
 			),
 			children: <SalesFunnel />,
+		},
+		{
+			key: 'adspending',
+			label: (
+				<span>
+					<DollarOutlined />
+					Реклама
+				</span>
+			),
+			children: <AdSpending />,
 		},
 	];
 
@@ -115,6 +127,7 @@ export const AppLayout: React.FC = () => {
 				{activeTab === 'analytics' && <SalesAnalytics />}
 				{activeTab === 'calculator' && <ProfitCalculator />}
 				{activeTab === 'funnel' && <SalesFunnel />}
+				{activeTab === 'adspending' && <AdSpending />}
 			</Content>
 		</Layout>
 	);

@@ -1,0 +1,1 @@
+export { AdSpending } from './AdSpending';

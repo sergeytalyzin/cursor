@@ -1,0 +1,34 @@
+.ad-spending {
+	padding: 24px;
+	max-width: 1600px;
+	margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+	.ad-spending {
+		padding: 16px;
+	}
+}
+
+.ad-spending .ant-table {
+	background: transparent;
+}
+
+.ad-spending .ant-table-thead > tr > th {
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: 12px;
+	letter-spacing: 0.5px;
+}
+
+.ad-spending .ant-picker {
+	border-radius: 10px;
+}
+
+.ad-spending .ant-progress {
+	margin: 0;
+}
+
+.ad-spending .ant-alert {
+	border-radius: 12px;
+}
