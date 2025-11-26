@@ -3,8 +3,6 @@ import { Row, Col, InputNumber, Typography, Divider, Space, Flex, Statistic } fr
 import {
 	DollarOutlined,
 	PercentageOutlined,
-	RiseOutlined,
-	FallOutlined,
 } from '@ant-design/icons';
 import { Card } from '../../shared/components/Card/Card';
 import './ProfitCalculator.css';
@@ -13,35 +11,35 @@ const { Title, Text } = Typography;
 
 interface CalculatorData {
 	// Входные данные
-	costPrice: number; // Себестоимость
-	chinaDollar: number; // Доставка по Китаю (CNY)
-	cnyToRub: number; // Курс CNY -> RUB
-	weight: number; // Вес товара (кг)
-	pricePerKg: number; // Цена за кг из Китая
-	russiaDelivery: number; // Доставка по России
+	purchasePrice: number; // Закупочная цена товара
+	chinaDelivery: number; // Доставка из Китая (за единицу)
+	russiaDelivery: number; // Доставка по России (за единицу)
 	packaging: number; // Упаковка
-	returnRate: number; // Процент возвратов
-	sellingPrice: number; // Цена продажи
-
-	// Константы (можно настраивать)
-	taxRate: number; // Налог 7%
+	
+	// Налоги и комиссии (в рублях или процентах)
+	taxAmount: number; // Налог (фиксированная сумма на товар)
 	ozonCommission: number; // Комиссия Ozon (%)
 	acquiringCommission: number; // Эквайринг (%)
+	
+	// Прочие расходы
+	otherExpenses: number; // Прочие расходы
+	returnRate: number; // Процент возвратов
+	
+	// Желаемая прибыль
+	desiredProfit: number; // Желаемая прибыль на единицу товара
 }
 
 const initialData: CalculatorData = {
-	costPrice: 1000,
-	chinaDollar: 50,
-	cnyToRub: 12.5,
-	weight: 0.5,
-	pricePerKg: 800,
+	purchasePrice: 1000,
+	chinaDelivery: 800,
 	russiaDelivery: 150,
 	packaging: 50,
-	returnRate: 5,
-	sellingPrice: 3000,
-	taxRate: 7,
+	taxAmount: 70,
 	ozonCommission: 15,
 	acquiringCommission: 2,
+	otherExpenses: 0,
+	returnRate: 5,
+	desiredProfit: 500,
 };
 
 export const ProfitCalculator: React.FC = () => {
@@ -55,34 +53,43 @@ export const ProfitCalculator: React.FC = () => {
 	});
 
 	const calculateProfit = () => {
-		// Расчёт всех затрат
-		const chinaDeliveryCost = data.chinaDollar * data.cnyToRub;
-		const internationalDelivery = data.weight * data.pricePerKg;
-		const totalDelivery = chinaDeliveryCost + internationalDelivery + data.russiaDelivery;
+		// Шаг 1: Базовая себестоимость (без комиссий от цены продажи)
+		const baseDelivery = data.chinaDelivery + data.russiaDelivery;
+		const baseCost = 
+			data.purchasePrice + 
+			baseDelivery + 
+			data.packaging + 
+			data.taxAmount + 
+			data.otherExpenses;
 
-		const tax = (data.sellingPrice * data.taxRate) / 100;
-		const ozonFee = (data.sellingPrice * data.ozonCommission) / 100;
-		const acquiringFee = (data.sellingPrice * data.acquiringCommission) / 100;
+		// Шаг 2: Учёт возвратов (увеличивает себестоимость)
+		const returnCost = baseCost * (data.returnRate / 100);
+		const costWithReturns = baseCost + returnCost;
 
-		const returnCost = (data.costPrice + totalDelivery) * (data.returnRate / 100);
+		// Шаг 3: Цена продажи = Себестоимость + Желаемая прибыль
+		// Но нужно учесть комиссии Ozon и эквайринг, которые берутся от цены продажи
+		// Формула: ЦенаПродажи = (СебестоимостьСВозвратами + ЖелаемаяПрибыль) / (1 - КомиссияOzon/100 - Эквайринг/100)
+		const commissionRate = (data.ozonCommission + data.acquiringCommission) / 100;
+		const sellingPriceBeforeCommissions = costWithReturns + data.desiredProfit;
+		const sellingPrice = sellingPriceBeforeCommissions / (1 - commissionRate);
 
-		const totalCost =
-			data.costPrice +
-			totalDelivery +
-			data.packaging +
-			tax +
-			ozonFee +
-			acquiringFee +
-			returnCost;
+		// Шаг 4: Рассчитываем реальные комиссии от цены продажи
+		const ozonFee = (sellingPrice * data.ozonCommission) / 100;
+		const acquiringFee = (sellingPrice * data.acquiringCommission) / 100;
 
-		const revenue = data.sellingPrice;
-		const netProfit = revenue - totalCost;
+		// Шаг 5: Полная себестоимость (включая комиссии)
+		const totalCost = costWithReturns + ozonFee + acquiringFee;
+
+		// Шаг 6: Чистая прибыль
+		const netProfit = sellingPrice - totalCost;
+
+		// Шаг 7: Метрики
 		const roi = ((netProfit / totalCost) * 100);
-		const margin = ((netProfit / revenue) * 100);
+		const margin = ((netProfit / sellingPrice) * 100);
 
 		setResults({
 			totalCost: Math.round(totalCost),
-			revenue: Math.round(revenue),
+			revenue: Math.round(sellingPrice),
 			netProfit: Math.round(netProfit),
 			roi: Math.round(roi * 10) / 10,
 			margin: Math.round(margin * 10) / 10,
@@ -132,8 +139,6 @@ export const ProfitCalculator: React.FC = () => {
 		</div>
 	);
 
-	const isProfitable = results.netProfit > 0;
-
 	return (
 		<div className="profit-calculator fade-in">
 			<Row gutter={[24, 24]}>
@@ -142,19 +147,12 @@ export const ProfitCalculator: React.FC = () => {
 					<Card title="Параметры расчёта" className="calculator-form">
 						<Space direction="vertical" size="large" style={{ width: '100%' }}>
 							<div>
-								<Title level={5}>💰 Основные затраты</Title>
+								<Title level={5}>🛒 Закупка товара</Title>
 								<Row gutter={[16, 16]}>
-									<Col span={12}>
+									<Col span={24}>
 										<FormField
-											label="Себестоимость товара"
-											field="costPrice"
-											suffix="₽"
-										/>
-									</Col>
-									<Col span={12}>
-										<FormField
-											label="Цена продажи"
-											field="sellingPrice"
+											label="Закупочная цена товара"
+											field="purchasePrice"
 											suffix="₽"
 										/>
 									</Col>
@@ -164,29 +162,12 @@ export const ProfitCalculator: React.FC = () => {
 							<Divider style={{ margin: 0 }} />
 
 							<div>
-								<Title level={5}>🚚 Доставка</Title>
+								<Title level={5}>🚚 Доставка и упаковка</Title>
 								<Row gutter={[16, 16]}>
 									<Col span={12}>
 										<FormField
-											label="Доставка по Китаю (CNY)"
-											field="chinaDollar"
-											suffix="¥"
-										/>
-									</Col>
-									<Col span={12}>
-										<FormField
-											label="Курс CNY → RUB"
-											field="cnyToRub"
-											suffix="₽"
-										/>
-									</Col>
-									<Col span={12}>
-										<FormField label="Вес товара (кг)" field="weight" suffix="кг" />
-									</Col>
-									<Col span={12}>
-										<FormField
-											label="Цена за кг из Китая"
-											field="pricePerKg"
+											label="Доставка из Китая"
+											field="chinaDelivery"
 											suffix="₽"
 										/>
 									</Col>
@@ -200,16 +181,26 @@ export const ProfitCalculator: React.FC = () => {
 									<Col span={12}>
 										<FormField label="Упаковка" field="packaging" suffix="₽" />
 									</Col>
+									<Col span={12}>
+										<FormField
+											label="Прочие расходы"
+											field="otherExpenses"
+											suffix="₽"
+										/>
+									</Col>
 								</Row>
 							</div>
 
 							<Divider style={{ margin: 0 }} />
 
 							<div>
-								<Title level={5}>📊 Комиссии и налоги</Title>
+								<Title level={5}>📊 Налоги и комиссии</Title>
 								<Row gutter={[16, 16]}>
 									<Col span={12}>
-										<FormField label="Налог" field="taxRate" suffix="%" />
+										<FormField label="Налог на товар" field="taxAmount" suffix="₽" />
+									</Col>
+									<Col span={12}>
+										<FormField label="Процент возвратов" field="returnRate" suffix="%" />
 									</Col>
 									<Col span={12}>
 										<FormField label="Комиссия Ozon" field="ozonCommission" suffix="%" />
@@ -221,8 +212,20 @@ export const ProfitCalculator: React.FC = () => {
 											suffix="%"
 										/>
 									</Col>
-									<Col span={12}>
-										<FormField label="Процент возвратов" field="returnRate" suffix="%" />
+								</Row>
+							</div>
+
+							<Divider style={{ margin: 0 }} />
+
+							<div>
+								<Title level={5}>💎 Желаемая прибыль</Title>
+								<Row gutter={[16, 16]}>
+									<Col span={24}>
+										<FormField
+											label="Желаемая прибыль на единицу товара"
+											field="desiredProfit"
+											suffix="₽"
+										/>
 									</Col>
 								</Row>
 							</div>
@@ -234,29 +237,36 @@ export const ProfitCalculator: React.FC = () => {
 				<Col xs={24} lg={10}>
 					<Space direction="vertical" size="middle" style={{ width: '100%' }}>
 						{/* Основные показатели */}
-						<Card
-							className={`result-card ${isProfitable ? 'profitable' : 'unprofitable'}`}
-						>
+						<Card className="result-card">
 							<Flex vertical gap={16}>
 								<div className="result-header">
-									<Text type="secondary">Чистая прибыль</Text>
+									<Text type="secondary">Себестоимость товара</Text>
 									<Statistic
-										value={results.netProfit}
+										value={results.totalCost}
 										precision={0}
 										suffix=" ₽"
 										valueStyle={{
 											fontSize: 48,
 											fontWeight: 700,
-											color: isProfitable ? '#34C759' : '#FF3B30',
+											color: '#FF3B30',
 										}}
-										prefix={
-											isProfitable ? (
-												<RiseOutlined style={{ fontSize: 40 }} />
-											) : (
-												<FallOutlined style={{ fontSize: 40 }} />
-											)
-										}
+										prefix={<DollarOutlined style={{ fontSize: 40 }} />}
 									/>
+									<div style={{ marginTop: 16, padding: '12px', background: 'rgba(0, 122, 255, 0.08)', borderRadius: 8 }}>
+										<Flex justify="space-between" align="center">
+											<Text>+ Желаемая прибыль</Text>
+											<Text strong style={{ fontSize: 18, color: '#34C759' }}>
+												{data.desiredProfit.toLocaleString('ru-RU')} ₽
+											</Text>
+										</Flex>
+										<Divider style={{ margin: '8px 0' }} />
+										<Flex justify="space-between" align="center">
+											<Text strong>= Продавать за</Text>
+											<Text strong style={{ fontSize: 24, color: '#007AFF' }}>
+												{results.revenue.toLocaleString('ru-RU')} ₽
+											</Text>
+										</Flex>
+									</div>
 								</div>
 
 								<Divider style={{ margin: 0 }} />
@@ -299,65 +309,87 @@ export const ProfitCalculator: React.FC = () => {
 						</Card>
 
 						{/* Детализация */}
-						<Card title="📋 Детализация">
+						<Card title="📋 Детализация расчёта">
 							<Space direction="vertical" size="middle" style={{ width: '100%' }}>
-								<Flex justify="space-between">
-									<Text type="secondary">Выручка</Text>
-									<Text strong style={{ fontSize: 16 }}>
-										{results.revenue.toLocaleString('ru-RU')} ₽
-									</Text>
-								</Flex>
+								<div style={{ background: 'rgba(0, 122, 255, 0.08)', padding: '12px', borderRadius: 8 }}>
+									<Flex justify="space-between">
+										<Text strong>Рекомендуемая цена продажи</Text>
+										<Text strong style={{ fontSize: 18, color: '#007AFF' }}>
+											{results.revenue.toLocaleString('ru-RU')} ₽
+										</Text>
+									</Flex>
+								</div>
+								
 								<Divider style={{ margin: 0 }} />
+								
+								<Text type="secondary" strong>Из них:</Text>
+								
 								<Flex justify="space-between">
-									<Text type="secondary">Полная себестоимость</Text>
-									<Text strong style={{ fontSize: 16, color: '#FF3B30' }}>
-										{results.totalCost.toLocaleString('ru-RU')} ₽
-									</Text>
+									<Text>Закупочная цена</Text>
+									<Text>{data.purchasePrice.toLocaleString('ru-RU')} ₽</Text>
 								</Flex>
-								<Divider style={{ margin: 0 }} />
-								<Flex justify="space-between">
-									<Text>Доставка по Китаю</Text>
-									<Text>
-										{Math.round(data.chinaDollar * data.cnyToRub).toLocaleString('ru-RU')}{' '}
-										₽
-									</Text>
-								</Flex>
+								
 								<Flex justify="space-between">
 									<Text>Доставка из Китая</Text>
-									<Text>
-										{Math.round(data.weight * data.pricePerKg).toLocaleString('ru-RU')} ₽
-									</Text>
+									<Text>{data.chinaDelivery.toLocaleString('ru-RU')} ₽</Text>
 								</Flex>
+								
 								<Flex justify="space-between">
 									<Text>Доставка по России</Text>
 									<Text>{data.russiaDelivery.toLocaleString('ru-RU')} ₽</Text>
 								</Flex>
+								
 								<Flex justify="space-between">
 									<Text>Упаковка</Text>
 									<Text>{data.packaging.toLocaleString('ru-RU')} ₽</Text>
 								</Flex>
+								
+								<Flex justify="space-between">
+									<Text>Налог</Text>
+									<Text>{data.taxAmount.toLocaleString('ru-RU')} ₽</Text>
+								</Flex>
+								
+								{data.otherExpenses > 0 && (
+									<Flex justify="space-between">
+										<Text>Прочие расходы</Text>
+										<Text>{data.otherExpenses.toLocaleString('ru-RU')} ₽</Text>
+									</Flex>
+								)}
+								
 								<Flex justify="space-between">
 									<Text>Комиссия Ozon ({data.ozonCommission}%)</Text>
 									<Text>
-										{Math.round((data.sellingPrice * data.ozonCommission) / 100).toLocaleString('ru-RU')} ₽
+										{Math.round((results.revenue * data.ozonCommission) / 100).toLocaleString('ru-RU')} ₽
 									</Text>
 								</Flex>
-								<Flex justify="space-between">
-									<Text>Налог ({data.taxRate}%)</Text>
-									<Text>
-										{Math.round((data.sellingPrice * data.taxRate) / 100).toLocaleString('ru-RU')} ₽
-									</Text>
-								</Flex>
+								
 								<Flex justify="space-between">
 									<Text>Эквайринг ({data.acquiringCommission}%)</Text>
 									<Text>
-										{Math.round((data.sellingPrice * data.acquiringCommission) / 100).toLocaleString('ru-RU')} ₽
+										{Math.round((results.revenue * data.acquiringCommission) / 100).toLocaleString('ru-RU')} ₽
 									</Text>
 								</Flex>
+								
 								<Flex justify="space-between">
 									<Text>Возвраты ({data.returnRate}%)</Text>
 									<Text>
-										{Math.round((data.costPrice + data.weight * data.pricePerKg) * (data.returnRate / 100)).toLocaleString('ru-RU')} ₽
+										{Math.round((data.purchasePrice + data.chinaDelivery + data.russiaDelivery + data.packaging + data.taxAmount + data.otherExpenses) * (data.returnRate / 100)).toLocaleString('ru-RU')} ₽
+									</Text>
+								</Flex>
+								
+								<Divider style={{ margin: 0 }} />
+								
+								<Flex justify="space-between">
+									<Text strong style={{ color: '#FF3B30' }}>Полная себестоимость</Text>
+									<Text strong style={{ fontSize: 16, color: '#FF3B30' }}>
+										{results.totalCost.toLocaleString('ru-RU')} ₽
+									</Text>
+								</Flex>
+								
+								<Flex justify="space-between">
+									<Text strong style={{ color: '#34C759' }}>Желаемая прибыль</Text>
+									<Text strong style={{ fontSize: 16, color: '#34C759' }}>
+										{data.desiredProfit.toLocaleString('ru-RU')} ₽
 									</Text>
 								</Flex>
 							</Space>

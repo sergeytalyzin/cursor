@@ -34,14 +34,7 @@
 .result-card {
 	position: sticky;
 	top: 90px;
-}
-
-.result-card.profitable {
-	border-left: 4px solid #34c759 !important;
-}
-
-.result-card.unprofitable {
-	border-left: 4px solid #ff3b30 !important;
+	border-left: 4px solid #007AFF !important;
 }
 
 .result-header {
