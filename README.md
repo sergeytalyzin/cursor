@@ -1,73 +1,156 @@
-# React + TypeScript + Vite
+# 📊 Ozon Analytics
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Минималистичный сервис аналитики для Ozon с калькулятором прибыли в стиле Apple / Notion / Linear.
 
-Currently, two official plugins are available:
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![React](https://img.shields.io/badge/React-19.1.1-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?logo=typescript)
+![Ant Design](https://img.shields.io/badge/Ant%20Design-5.27.6-1677FF)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Особенности
 
-## React Compiler
+- 🎨 **Минималистичный дизайн** в стиле Apple/Notion/Linear
+- 🌓 **Dark/Light режимы** с плавными переходами
+- 📈 **Интерактивные графики** на ECharts
+- 📊 **3 основных модуля**:
+  - Аналитика продаж
+  - Калькулятор прибыли
+  - Воронка продаж
+- 🎯 **Sticky header** с фиксированными табами
+- 📱 **Адаптивный дизайн** для всех устройств
+- 🚀 **Быстрая загрузка** благодаря Vite
+- 💎 **Переиспользуемые компоненты**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Технологии
 
-## Expanding the ESLint configuration
+- **React 19** + TypeScript
+- **Vite** - быстрая сборка
+- **Ant Design 5** - UI компоненты
+- **ECharts** - графики и визуализация
+- **Zustand** - управление состоянием
+- **React Query** - кеширование данных
+- **Day.js** - работа с датами
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📦 Установка
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Установка зависимостей
+npm install
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Запуск dev-сервера
+npm run dev
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Сборка для production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🎯 Структура проекта
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── components/         # Общие компоненты
+│   └── Layout/        # Главный layout с header и tabs
+├── pages/             # Страницы приложения
+│   ├── SalesAnalytics/    # Аналитика продаж
+│   ├── ProfitCalculator/  # Калькулятор прибыли
+│   └── SalesFunnel/       # Воронка продаж
+├── shared/            # Переиспользуемые модули
+│   ├── components/    # UI компоненты (Card, KPIBlock, Charts)
+│   ├── store/         # Zustand stores (theme)
+│   └── styles/        # Глобальные стили и темы
+└── entities/          # Бизнес-логика и API
+```
+
+## 📱 Основные модули
+
+### 1. Аналитика продаж
+
+- 📊 KPI метрики (выручка, заказы, средний чек, ROI)
+- 📈 Графики продаж по дням
+- 📦 Статистика по складам
+- 🏷️ Таблица продаж по SKU
+- 🗓️ Фильтры по датам
+
+### 2. Калькулятор прибыли
+
+Расчёт прибыли с учётом:
+- 💰 Себестоимости товара
+- 🚚 Доставки (Китай → РФ → клиент)
+- 📦 Упаковки
+- 🏦 Налогов (7%)
+- 💳 Комиссий Ozon и эквайринга
+- 🔄 Процента возвратов
+
+Показывает:
+- 💵 Чистую прибыль
+- 📊 ROI
+- 📈 Маржинальность
+
+### 3. Воронка продаж
+
+- 👁️ Показы → Клики → Корзина → Заказы → Выкупы
+- 📊 Конверсия между этапами
+- 📈 Динамика воронки по дням
+- 🏷️ Воронка по товарам
+
+## 🎨 Стилизация
+
+Проект использует минималистичный дизайн с:
+- ✨ Плавными анимациями
+- 🌈 Градиентами в стиле Apple
+- 💎 Glass morphism эффектами
+- 🎯 Чистой типографикой
+- 📏 Большими отступами (whitespace)
+
+### Цветовая палитра
+
+**Light Theme:**
+- Primary: `#007AFF` (Apple Blue)
+- Success: `#34C759` (Apple Green)
+- Warning: `#FF9500` (Apple Orange)
+- Error: `#FF3B30` (Apple Red)
+
+**Dark Theme:**
+- Primary: `#0A84FF`
+- Success: `#32D74B`
+- Warning: `#FF9F0A`
+- Error: `#FF453A`
+
+## 🔧 Конфигурация
+
+### Темы
+
+Темы настраиваются в `src/shared/styles/theme.ts`. Состояние темы хранится в localStorage через Zustand.
+
+### API
+
+API конфигурация находится в `src/entities/app/api/`. Для подключения реальных данных:
+
+1. Обновите endpoints в соответствующих файлах
+2. Настройте авторизацию в `src/shared/config/axios.ts`
+3. Замените моковые данные на реальные API вызовы
+
+## 📝 TODO
+
+- [ ] Подключить реальное Ozon API
+- [ ] Добавить авторизацию
+- [ ] Экспорт данных в Excel/PDF
+- [ ] Больше настроек калькулятора
+- [ ] Сохранение расчётов
+- [ ] Уведомления
+- [ ] Мультиязычность (i18n)
+
+## 🤝 Вклад
+
+Проект открыт для улучшений! Не стесняйтесь создавать issues и pull requests.
+
+## 📄 Лицензия
+
+MIT
+
+---
+
+Сделано с ❤️ для продавцов на Ozon
