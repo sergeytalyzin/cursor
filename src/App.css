@@ -1,0 +1,24 @@
+#root {
+  margin: 0 auto;
+  padding: 1rem;
+  text-align: center;
+}
+body {
+  background: white;
+}
+.app-background {
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(145deg, #f5f5f7, rgba(255, 255, 255, 0.6));
+  padding: 40px 0;
+  width: 100%;
+}
+
+.ant-card {
+  background: linear-gradient(145deg, #ffffff, #f3f3f6) !important;
+  box-shadow:
+          4px 4px 10px rgba(0, 0, 0, 0.08),
+          -4px -4px 10px rgba(255, 255, 255, 0.8);
+  border: none !important;
+}
