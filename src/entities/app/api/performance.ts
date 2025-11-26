@@ -10,6 +10,68 @@ interface TokenResponse {
 	token_type: string;
 }
 
+// Статистика кампании из CSV
+export interface CampaignStats {
+	id: string;
+	name: string;
+	status: string;
+	type: string;
+	placement: string;
+	dailyBudget: number;
+	weeklyBudget: number;
+	expense: number; // Расход
+	views: number; // Показы
+	clicks: number; // Клики
+	addToCart: number; // В корзину
+	avgBid: number; // Средняя ставка
+	avgCPM: number; // Ср. цена 1000 показов
+	ctr: number; // CTR
+	avgCPC: number; // Ср. цена клика
+	orders: number; // Заказы, шт
+	revenue: number; // Заказы, ₽
+	drr: number; // ДРР
+}
+
+// Функция парсинга CSV данных
+function parseCSVStats(csvText: string): CampaignStats[] {
+	const lines = csvText.trim().split('\n');
+	if (lines.length < 2) return [];
+	
+	// Пропускаем заголовок (первая строка)
+	const dataLines = lines.slice(1);
+	
+	return dataLines.map(line => {
+		const parts = line.split(';');
+		
+		// Парсим числа с запятой как десятичным разделителем
+		const parseNumber = (str: string) => {
+			if (!str || str === '') return 0;
+			return parseFloat(str.replace(',', '.'));
+		};
+		
+		return {
+			id: parts[0] || '',
+			name: parts[1] || '',
+			status: parts[2] || '',
+			type: parts[3] || '',
+			placement: parts[4] || '',
+			dailyBudget: parseNumber(parts[5]),
+			weeklyBudget: parseNumber(parts[6]),
+			expense: parseNumber(parts[7]),
+			views: parseNumber(parts[8]),
+			clicks: parseNumber(parts[9]),
+			addToCart: parseNumber(parts[10]),
+			avgBid: parseNumber(parts[11]),
+			avgCPM: parseNumber(parts[12]),
+			ctr: parseNumber(parts[13]),
+			avgCPC: parseNumber(parts[14]),
+			orders: parseNumber(parts[15]),
+			revenue: parseNumber(parts[16]),
+			drr: parseNumber(parts[17]),
+		};
+	});
+}
+
 // Получение токена для Performance API
 export async function getPerformanceToken(clientId: string, clientSecret: string): Promise<string> {
 	try {
@@ -95,20 +157,21 @@ export function usePerformanceStatistics(
 	});
 }
 
-// Hook для получения отчёта по продуктам в кампаниях
+// Hook для получения отчёта по продуктам в кампаниях (CSV формат)
 export function usePerformanceProductReport(
 	dateFrom: string,
 	dateTo: string,
 	clientId?: string,
 	clientSecret?: string
 ) {
-	return useQuery({
+	return useQuery<CampaignStats[]>({
 		enabled: !!clientId && !!clientSecret,
 		queryKey: ['performance-product-report', dateFrom, dateTo, clientId],
 		queryFn: async () => {
 			const token = await getPerformanceToken(clientId!, clientSecret!);
 			
-			const { data } = await axios.get(
+			// API возвращает CSV, не JSON!
+			const { data } = await axios.get<string>(
 				`${PERFORMANCE_API_BASE}/api/client/statistics/campaign/product`,
 				{
 					params: {
@@ -117,12 +180,19 @@ export function usePerformanceProductReport(
 					},
 					headers: {
 						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json',
+						'Accept': 'text/csv',
 					},
+					responseType: 'text', // Важно!
 				}
 			);
 			
-			return data;
+			console.log('CSV Response:', data);
+			
+			// Парсим CSV данные
+			const stats = parseCSVStats(data);
+			console.log('Parsed Stats:', stats);
+			
+			return stats;
 		},
 		staleTime: 5 * 60 * 1000,
 	});
