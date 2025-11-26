@@ -1,0 +1,50 @@
+.profit-calculator {
+	padding: 24px;
+	max-width: 1600px;
+	margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+	.profit-calculator {
+		padding: 16px;
+	}
+}
+
+.calculator-form .form-field {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.calculator-form .field-label {
+	font-size: 13px;
+	font-weight: 500;
+	text-transform: none;
+}
+
+.calculator-form .ant-input-number {
+	border-radius: 10px;
+	font-size: 16px;
+}
+
+.calculator-form .ant-input-number-input {
+	font-weight: 500;
+}
+
+.result-card {
+	position: sticky;
+	top: 90px;
+	border-left: 4px solid #007AFF !important;
+}
+
+.result-header {
+	text-align: center;
+}
+
+.mini-stat {
+	text-align: center;
+}
+
+.mini-stat .ant-statistic {
+	margin-top: 8px;
+}

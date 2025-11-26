@@ -1,0 +1,34 @@
+.sales-funnel {
+	padding: 24px;
+	max-width: 1600px;
+	margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+	.sales-funnel {
+		padding: 16px;
+	}
+}
+
+.sales-funnel .ant-table {
+	background: transparent;
+}
+
+.sales-funnel .ant-table-thead > tr > th {
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: 12px;
+	letter-spacing: 0.5px;
+}
+
+.sales-funnel .ant-picker {
+	border-radius: 10px;
+}
+
+.sales-funnel .ant-progress-line {
+	margin: 0;
+}
+
+.sales-funnel .ant-progress-bg {
+	border-radius: 100px;
+}
